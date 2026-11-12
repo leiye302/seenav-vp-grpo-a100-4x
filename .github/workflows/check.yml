@@ -1,0 +1,21 @@
+name: Verify official SeeNav source and four-GPU launcher
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cpu:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: python reproduce.py fetch
+      - run: python reproduce.py check
+      - run: python -m unittest discover -s tests -v
+      - name: Check Bash syntax of the actual launcher
+        run: python -c 'import reproduce as r; print(r.isolated_paths(r.four_gpu_launcher((r.DEFAULT_SOURCE / r.LOCK["train_launcher"]).read_text())))' | bash -n
